@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMegaLeadForm } from "@/hooks/useMegaLeadForm";
 import {
   BRAND,
@@ -92,6 +92,11 @@ export function FormCard({
   const [wasQualified, setWasQualified] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Synchronous double-submit guard — React state updates are async, so
+  // rapid-click bursts (5 in <50ms) all see submitting=false. A ref reads
+  // the latest value within the same microtask. (SHLY May 8 pattern.)
+  const inFlightRef = useRef(false);
+
   const phoneDigits = phone.replace(/\D/g, "");
   const phoneValid = phoneDigits.length === 10;
   const zipValid = zip.length === 5;
@@ -107,8 +112,9 @@ export function FormCard({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (submitting || submitted) return;
+    if (inFlightRef.current || submitted) return;
     if (!canSubmit) return;
+    inFlightRef.current = true;
     setError(null);
     setSubmitting(true);
 
@@ -454,6 +460,10 @@ export function FormCard({
           type="button"
           disabled={submitting || submitted}
           onClick={(e) => {
+            // Synchronous guard against rapid clicks (refs update faster
+            // than React state). The handleSubmit guard is the truth, but
+            // this prevents requestSubmit() from even being called.
+            if (inFlightRef.current || submitted) return;
             if (!canSubmit) {
               // Let the native browser show its required-field hints.
               const form = (e.currentTarget as HTMLButtonElement).closest(
