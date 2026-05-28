@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* Premier Solar Northwest — HVAC LP brand tokens.
+ *
+ * Brand palette extracted from premiersolarnw.com wayback snapshot
+ * (Dec 2025) + logo art. Primary brand orange #F16D47 + supporting
+ * deep navy. Trade-pro HVAC vertical: trust + warmth + urgency.
+ */
+@theme {
+  /* Brand colors — primary is PSN's signature warm orange. */
+  --color-primary: #E6582F;           /* Premier Solar orange (CTA) */
+  --color-primary-hover: #c44520;
+  --color-primary-50: #fdf1ec;
+  --color-primary-100: #fbd9c9;
+  --color-primary-200: #f6b294;
+  --color-primary-700: #9b3a18;
+
+  --color-accent: #0e2a4a;            /* deep navy — dark section bg */
+  --color-accent-hover: #0a2038;
+
+  --color-amber: #f6b704;             /* warm accent (CTAs on dark) */
+  --color-amber-hover: #d79f00;
+  --color-amber-50: #fdf4d4;
+  --color-amber-100: #fbe89c;
+
+  --color-danger: #d43a2f;            /* used only for emergency callout */
+
+  /* Surface */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f5f1;       /* warm neutral */
+  --color-surface-cool: #f1ebe3;      /* warm sand (form bg) */
+  --color-surface-dark: #0e2a4a;      /* navy dark sections */
+  --color-ink: #15202b;
+  --color-ink-muted: #4b5668;
+  --color-ink-on-dark: rgba(255, 255, 255, 0.88);
+  --color-line: #e2dcd2;
+
+  /* Fonts */
+  --font-display: var(--font-display-inter);
+  --font-body: var(--font-body-inter);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #15202b;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+.eyebrow {
+  font-family: var(--font-body-inter), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: var(--color-primary);
+}
+
+.eyebrow-on-dark {
+  color: var(--color-amber);
+}
+
+/* Subtle pinstripe pattern for navy sections (texture, not flat). */
+.bg-pinstripe-navy {
+  background-color: var(--color-surface-dark);
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.03) 75%, transparent 75%, transparent);
+  background-size: 14px 14px;
+}
+
+/* Hero photo overlay — used by HeroSection. */
+.bg-hero-photo {
+  background-color: var(--color-surface-dark);
+  background-image:
+    linear-gradient(180deg, rgba(14, 42, 74, 0.78) 0%, rgba(14, 42, 74, 0.92) 100%),
+    url("/images/hvac-install.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bg-navy-deep {
+  background-color: var(--color-surface-dark);
+}
+
+/* Soft warm-cream gradient for the offer / proof section. */
+.bg-warm-cream {
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-alt) 100%);
+}

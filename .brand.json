@@ -1,0 +1,99 @@
+{
+  "url": "https://qrc123.com",
+  "scrapedAt": "2026-04-24T20:14:01.954Z",
+  "engine": "firecrawl",
+  "theme": "likely-light",
+  "meta": {
+    "title": "HVAC & Refrigeration Services in Winston-Salem | QRC HVAC & Refrigeration",
+    "description": "Heating and cooling experts in Winston-Salem—get fast AC repair, commercial refrigeration, and HVAC services. Trust QRC for reliable comfort year-round.",
+    "ogImage": "https://qrc123.com/wp-content/uploads/2023/01/QRC-logo-homepage-feat.jpg",
+    "language": "en-US"
+  },
+  "colors": {
+    "brand": [
+      "#4280ef",
+      "#34a353",
+      "#f6b704",
+      "#e54335",
+      "#34e0a1",
+      "#4285f4",
+      "#34a853",
+      "#fbbc05",
+      "#ea4335",
+      "#303944"
+    ],
+    "all": [
+      "#4280ef",
+      "#34a353",
+      "#f6b704",
+      "#e54335",
+      "#34e0a1",
+      "#4285f4",
+      "#34a853",
+      "#fbbc05",
+      "#ea4335",
+      "#303944",
+      "#ffffff",
+      "#0e60c3",
+      "#e5e3df",
+      "#1a73e8",
+      "#ffb400"
+    ]
+  },
+  "fonts": [
+    "Roboto"
+  ],
+  "favicons": [
+    {
+      "url": "https://qrc123.com/wp-content/uploads/2023/01/cropped-favicon-32x32.png",
+      "sizes": "32x32"
+    },
+    {
+      "url": "https://qrc123.com/wp-content/uploads/2023/01/cropped-favicon-192x192.png",
+      "sizes": "192x192"
+    },
+    {
+      "url": "https://qrc123.com/wp-content/uploads/2023/01/cropped-favicon-180x180.png",
+      "sizes": "unknown"
+    },
+    {
+      "url": "https://qrc123.com/wp-content/uploads/2023/01/cropped-favicon-180x180.png",
+      "sizes": "apple-touch"
+    }
+  ],
+  "images": [
+    "https://jelly.mdhv.io/v1/star.gif?pid=vcvRkgjzexeXMZhCemgm9wNLJ1AE&amp;src=mh&amp;evt=hi",
+    "https://qrc123.com/wp-content/uploads/2026/04/Comfort-Club-Banner-qrc123.com-graphic-1920-x-600-px.png",
+    "https://maps.gstatic.com/mapfiles/transparent.png",
+    "https://app.realworklabs.com/poweredByLogoDark.png",
+    "https://lh3.googleusercontent.com/a-/ALV-UjWREcZkPqCRgoCYMD39Gt52qHFV9DHbyWAaXW_aa31riVMyBO6Tfg=s120-c-rp-mo-ba3-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocIiys067ILJ_HcIMc-Gpehgdh_dkT96kU_lHqFpYjsalYunyg=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a-/ALV-UjVVEUpFkQiS424CMsq1Zc9BgJAFRyhIga7BcpUr4hZKdFq6HAJU=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a-/ALV-UjWxb3kmDNQv9zUEp-8LMV0btYAPAVCr6x0VBEHiY-JneGGilvMs=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocK_Tj9Bk60nrVHGn03SClrtcKhd1Bbagk6bbb1gpS8JvJhg2Q=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocL-SFa1qg7tqYwJWZm78JjgUUEAWgo6EA72jMF3e2io3L6xDA=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocJ6X3t_Np0ysid1EseZBuxgFiyK-HeM5JL8L08NNTJWHazBow=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocIjVrBT4q8yhHXnIbjXNGyKSi0J2SuONrm1A2zzCFZ9yqABmg=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a-/ALV-UjVU6BMDQfEc8-RFzgRxs38sl6CH6xV4UbjpIt_ZZ-w6sRPHxOo=s120-c-rp-mo-br100",
+    "https://lh3.googleusercontent.com/a/ACg8ocJDasqumBK47cO-Nq4kXG9KhyBR5KpnWhtxmJa97cPNNz9k4A=s120-c-rp-mo-br100",
+    "https://qrc123.com/wp-content/uploads/2025/07/QRC-Big-Truck-Billboard-Image-Med-Res.jpg",
+    "https://qrc123.com/wp-content/uploads/2025/12/6-common-ac-repair-issues-what-to-expect-572334.webp",
+    "https://qrc123.com/wp-content/uploads/2025/10/QRC.png",
+    "https://qrc123.com/wp-content/uploads/2025/11/carrier-Logo-122-x-97-px-2.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/image-6.png",
+    "https://qrc123.com/wp-content/uploads/2024/06/google_nt.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/image-4.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/image-5.png",
+    "https://qrc123.com/wp-content/uploads/2025/11/carrier-Logo-122-x-97-px-1.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-8.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-4.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-3.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-10.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-2.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-1-1.png.png",
+    "https://qrc123.com/wp-content/uploads/2024/03/img-9.png.png"
+  ],
+  "ctas": [],
+  "navItems": [],
+  "htmlLength": 387379
+}

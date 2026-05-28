@@ -1,0 +1,96 @@
+{
+  "task_id": "d3d49e18-d99a-46c3-b1fa-bbc921aeab18",
+  "customer_id": "0e9e2686-9b2b-4bf4-b4fe-903e65ceb028",
+  "customer_name": "Premier Solar Northwest",
+  "page_url": "https://book.premiersolarnw.com",
+  "scope": "HVAC services landing page for Portland metro homeowners. SOLAR / BATTERY / ELECTRICAL-ONLY services are intentionally excluded per task content_requests (do NOT include solar, battery storage, or other non-HVAC services).",
+  "claims": [
+    {
+      "claim": "Locally owned family business since 2011",
+      "source": "task input_data.content_requests (provided by AM)",
+      "evidence": "Task spec content_requests #2: 'locally owned family business since 2011, NATE-certified technicians, in-house electricians, limited workmanship + labor warranty'"
+    },
+    {
+      "claim": "NATE-certified technicians",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec content_requests #2"
+    },
+    {
+      "claim": "In-house electricians",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec content_requests #2"
+    },
+    {
+      "claim": "Limited workmanship + labor warranty",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec content_requests #2"
+    },
+    {
+      "claim": "$500 off furnace + AC combo replacement offer",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec content_requests #3"
+    },
+    {
+      "claim": "1,000+ installs completed since 2011",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec content_requests #4: 'years in business, number of installs completed (1,000+ since 2011)'"
+    },
+    {
+      "claim": "Phone number (971) 357-9233 — CTM tracking number",
+      "source": "task input_data.phone_routing_number",
+      "evidence": "Task spec phone_routing_number: '971-357-9233' — designated CTM tracking number for this LP per task spec content_requests #6"
+    },
+    {
+      "claim": "Services: heat pump installation, furnace replacement, AC install/repair, HVAC repair, emergency HVAC service",
+      "source": "task input_data.content_requests",
+      "evidence": "Task spec 'Services covered: heat pump installation, furnace replacement, AC installation/repair, HVAC repair, emergency HVAC service'"
+    },
+    {
+      "claim": "Service area: Portland metro (Portland, Beaverton, Hillsboro, Tigard, Tualatin, Lake Oswego, Gresham, etc.)",
+      "source": "https://premierhvacpro.jobbersites.com/",
+      "evidence": "PSN's HVAC sister-brand microsite explicitly lists the service area: 'Portland, Beaverton, Hillsboro, North Plains, Banks, Forest Grove, Tigard, Tualatin, Sherwood, Newberg, Wilsonville, Canby, Lake Oswego, West Linn, Oregon City, Clackamas, Happy Valley, Gladstone, Milwaukie, Gresham, Fairview, St. Helens, Scappoose'"
+    },
+    {
+      "claim": "Energy Trust of Oregon rebates available on qualifying heat pump installations",
+      "source": "https://premiersolarnw.com/heating-ventilation-and-air-conditioning-hvac/",
+      "evidence": "PSN's own HVAC page references their certification with Energy Trust of Oregon (also visible as a partner logo on the homepage)"
+    },
+    {
+      "claim": "Testimonial: David C. — 'Great company, very responsive, lots of integrity. Very happy with the end result and the support.'",
+      "source": "https://premiersolarnw.com/ (homepage testimonial block, Dec 2025 wayback snapshot)",
+      "evidence": "Verbatim quote scraped from PSN's homepage testimonial section. Reproduced with attribution."
+    },
+    {
+      "claim": "Testimonial: Chris G. — 'Everyone at PSNW was very professional. We've had zero issues and are very happy...'",
+      "source": "https://premiersolarnw.com/ (homepage testimonial block)",
+      "evidence": "Verbatim quote from PSN's own homepage. Lightly trimmed (single phrase removed at start) for length; substance unchanged."
+    },
+    {
+      "claim": "Testimonial: Bryson E. — 'HIRE THEM. I've worked with hundreds of contractors...'",
+      "source": "https://premiersolarnw.com/ (homepage testimonial block)",
+      "evidence": "Verbatim quote from PSN's own homepage."
+    },
+    {
+      "claim": "4.8 star Google review average",
+      "source": "https://premiersolarnw.com/ (4.8-google-review-600x391-1 badge, Aug 2025)",
+      "evidence": "PSN displays a '4.8 Google Reviews' badge prominently on their homepage as of the Aug 2025 + Dec 2025 wayback captures."
+    }
+  ],
+  "tracking_credentials": {
+    "mega_admin_site_id": "ac6c1dfd-a0e9-48b6-a6c5-5d67ebbbfab6",
+    "mega_admin_site_key": "yyuozfzulja4g3ws",
+    "gtm_container_id": "GTM-PH74NDN",
+    "gtm_source": "task comment by 073d763d-ef5e-4bbd-80e1-73adb17571bb on 2026-05-28T18:12:37Z",
+    "ctm_script": "572388.tctm.co/t.js (universal MEGA CTM account)",
+    "meta_pixel_id": null,
+    "meta_pixel_source": "task input_data has no meta_pixel_id; ad_platforms is ['google'] only — no Meta tracking required"
+  },
+  "image_sources": {
+    "/public/logo.png": "https://premiersolarnw.com/wp-content/uploads/2020/08/premier-solar-logo.png (Aug 2024 wayback snapshot 20240815213711)",
+    "/public/favicon.jpg": "https://premiersolarnw.com/wp-content/uploads/2023/01/cropped-premier-Solar-logo_favicon-2-192x192.jpg (Aug 2024 wayback snapshot 20240815082818)",
+    "/public/images/heat-pump.webp": "https://d13cw1lxlociqy.cloudfront.net/wsxxfubusm3j4l7bp662o7a6pzvd — PSN's HVAC sister-site (premierhvacpro.jobbersites.com), real PSN-owned project photo",
+    "/public/images/hvac-install.webp": "https://d13cw1lxlociqy.cloudfront.net/4lxarhu91kirag55m27jy5cy2cf9 — PSN's HVAC sister-site, real PSN-owned project photo",
+    "/public/images/hvac-tech.webp": "https://d13cw1lxlociqy.cloudfront.net/lxuonspd5e41ghi4nst4436isswq — PSN's HVAC sister-site, real PSN-owned project photo",
+    "/public/images/furnace.webp": "https://d13cw1lxlociqy.cloudfront.net/q9ngqb67pkg546aswjejonfei607 — PSN's HVAC sister-site, real PSN-owned project photo"
+  }
+}
