@@ -14,6 +14,7 @@ declare global {
     MEGA_TAG_CONFIG?: TrackingConfig;
     API_ENDPOINT?: string;
     TRACKING_API_ENDPOINT?: string;
+    dataLayer?: Array<Record<string, unknown>>;
   }
 }
 

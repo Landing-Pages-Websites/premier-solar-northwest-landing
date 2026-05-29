@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   description:
     "Heat pump installation, furnace replacement, AC install + repair, and emergency HVAC service for Portland metro homeowners. NATE-certified technicians, in-house electricians, 1,000+ installs since 2011. $500 off furnace + AC combo replacement.",
   icons: {
-    icon: "/favicon.jpg",
-    apple: "/favicon.jpg",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
   robots: { index: true, follow: true },
 };

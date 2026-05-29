@@ -22,27 +22,32 @@ type Props = {
  * Premier Solar Northwest — HVAC LP lead form.
  *
  * Field set per task spec d3d49e18-d99a-46c3-b1fa-bbc921aeab18:
- *   - firstName        required
- *   - lastName         required
- *   - email            required
- *   - phone            required (10-digit US, formatted as (555) 555-5555)
- *   - zip              required (5-digit US)
- *   - homeowner        required ("yes" qualified | "no" disqualified)
- *   - timeline         required ("asap"/"1_2_weeks" qualified |
- *                                 "2_plus_weeks"/"just_researching" disqualified)
+ *   - firstName, lastName, email, phone, zip (all required)
+ *   - homeowner (yes / no)         — qualifying question
+ *   - timeline  (asap / 2wk / 2+wk / researching) — qualifying question
  *
- * EVERY submission — qualified OR disqualified — POSTs to useMegaLeadForm.
- * Disqualified leads ship with `qualified: false` + `disqualification_reason`
- * so the lead pipeline can tag them appropriately rather than dropping the
- * lead silently (per AGENTS Builds Lane HARD RULE #1, 2026-05-14 Peter mandate,
- * and the QC Capital 2026-05-21 rework lesson). The UI branches AFTER the
- * submit completes: qualified → standard thank-you screen, disqualified →
- * "not a fit right now" screen with a phone CTA fallback.
+ * Rework attempt 3 changes per director ruling (2026-05-29 19:55Z):
+ * - R5: stronger email regex + matching `pattern=` attr on input
+ * - R5: phone inputMode="numeric" (was "tel")
+ * - R5: rapid-click guard hardened — inFlightRef set BEFORE any state
+ *       update, button gets disabled={submitting||submitted}
+ * - R4: explicit window.dataLayer.push({event:'form_submission',...})
+ *       after successful submit() — keeping MegaTag optimizer auto-detect
+ *       as the primary tracking path (no MegaTag.trackEvent call)
+ * - HARD RULE #8 / Peter mandate 2026-05-19: inline per-field validation
+ *   errors — every required field has its own role=alert sibling, blur
+ *   triggers + live-clear, empty-submit shows all + focuses first invalid
  *
- * Button is type="button" with validate-first → requestSubmit pattern to
- * prevent the Mega optimizer from firing form_submit on native submit
- * events before our handleSubmit logic runs (SHLY May 8 incident pattern).
+ * EVERY submission — qualified OR disqualified — POSTs to useMegaLeadForm
+ * (per AGENTS Builds Lane HARD RULE #1 + 2026-05-14 Peter mandate +
+ * QC Capital 2026-05-21 lesson). UI branches AFTER submit completes.
  */
+
+// RFC-5322-lite email validator. Replaces the prior /@.+\./ (which let
+// `@company.com` through — QA attempt 1 finding 2026-05-28T21:16Z).
+const EMAIL_RE = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
+// Same regex as an attribute string (no anchors — HTML pattern is anchored implicitly).
+const EMAIL_PATTERN = "[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}";
 
 function formatPhone(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -71,6 +76,46 @@ const ChevronDown = () => (
   </svg>
 );
 
+// Per-field validators. Return null when valid, error message when invalid.
+type FieldKey =
+  | "firstName"
+  | "lastName"
+  | "email"
+  | "phone"
+  | "zip"
+  | "homeowner"
+  | "timeline";
+
+function validateField(key: FieldKey, value: string): string | null {
+  switch (key) {
+    case "firstName":
+      return value.trim().length >= 1 ? null : "Please enter your first name.";
+    case "lastName":
+      return value.trim().length >= 1 ? null : "Please enter your last name.";
+    case "email":
+      if (value.trim().length === 0) {
+        return "Please enter your email address.";
+      }
+      return EMAIL_RE.test(value.trim())
+        ? null
+        : "Please enter a valid email address.";
+    case "phone": {
+      const digits = value.replace(/\D/g, "");
+      if (digits.length === 0) return "Please enter your phone number.";
+      return digits.length === 10
+        ? null
+        : "Phone must be a 10-digit number.";
+    }
+    case "zip":
+      if (value.length === 0) return "Please enter your ZIP code.";
+      return value.length === 5 ? null : "ZIP must be 5 digits.";
+    case "homeowner":
+      return value.length > 0 ? null : "Please select an option.";
+    case "timeline":
+      return value.length > 0 ? null : "Please select a timeline.";
+  }
+}
+
 export function FormCard({
   variant = "card",
   heading = "Get My Free HVAC Quote",
@@ -87,15 +132,31 @@ export function FormCard({
   const [homeowner, setHomeowner] = useState<HomeownerValue | "">("");
   const [timeline, setTimeline] = useState<TimelineValue | "">("");
 
+  // Inline per-field error map. Populated on blur / change / submit.
+  // Empty string here = "field has been touched and is currently valid"
+  // (we don't render anything for empty messages). null = untouched.
+  type ErrorMap = Partial<Record<FieldKey, string | null>>;
+  const [errors, setErrors] = useState<ErrorMap>({});
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [wasQualified, setWasQualified] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  // Synchronous double-submit guard — React state updates are async, so
-  // rapid-click bursts (5 in <50ms) all see submitting=false. A ref reads
-  // the latest value within the same microtask. (SHLY May 8 pattern.)
+  // Synchronous double-submit guard. React state is async; in a 5-click
+  // burst all clicks see submitting=false before the first setState lands.
+  // A ref reads the latest value within the same microtask. We flip it
+  // BEFORE any state update so the second click bails immediately.
+  // (SHLY May 8 pattern + QA attempt 1 finding 2026-05-28T21:16Z —
+  // 5 leads in 196ms in ad_leads. Hardened per director attempt-3 ruling.)
   const inFlightRef = useRef(false);
+
+  // Refs for focus-management on empty-submit.
+  const fieldRefs = useRef<Partial<Record<FieldKey, HTMLElement | null>>>({});
+  const setFieldRef =
+    (key: FieldKey) => (el: HTMLInputElement | HTMLSelectElement | null) => {
+      fieldRefs.current[key] = el;
+    };
 
   const phoneDigits = phone.replace(/\D/g, "");
   const phoneValid = phoneDigits.length === 10;
@@ -104,24 +165,67 @@ export function FormCard({
   const canSubmit =
     firstName.trim().length >= 1 &&
     lastName.trim().length >= 1 &&
-    /@.+\./.test(email) &&
+    EMAIL_RE.test(email.trim()) &&
     phoneValid &&
     zipValid &&
     homeowner.length > 0 &&
     timeline.length > 0;
 
+  // Blur handler — show format-specific message if invalid.
+  function handleBlur(key: FieldKey, value: string) {
+    const msg = validateField(key, value);
+    setErrors((prev) => ({ ...prev, [key]: msg }));
+  }
+
+  // Change handler — if the field already had an error, re-validate live
+  // so the message clears the moment the input becomes valid.
+  function clearErrorIfFixed(key: FieldKey, value: string) {
+    setErrors((prev) => {
+      if (prev[key] === undefined) return prev;
+      const msg = validateField(key, value);
+      // msg === null → valid, blank out; msg !== null → keep showing the
+      // updated message (e.g. "10-digit" → "valid")
+      if (prev[key] === msg) return prev;
+      return { ...prev, [key]: msg };
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Synchronous double-click guard — must be the very first line.
     if (inFlightRef.current || submitted) return;
-    if (!canSubmit) return;
+
+    if (!canSubmit) {
+      // Run every validator, show every error at once, focus the first invalid.
+      const allErrors: ErrorMap = {
+        firstName: validateField("firstName", firstName),
+        lastName: validateField("lastName", lastName),
+        email: validateField("email", email),
+        phone: validateField("phone", phone),
+        zip: validateField("zip", zip),
+        homeowner: validateField("homeowner", homeowner),
+        timeline: validateField("timeline", timeline),
+      };
+      setErrors(allErrors);
+      const firstInvalid = (
+        Object.keys(allErrors) as FieldKey[]
+      ).find((k) => allErrors[k]);
+      if (firstInvalid) {
+        const el = fieldRefs.current[firstInvalid];
+        el?.focus();
+      }
+      return;
+    }
+
+    // Mark in-flight synchronously before any state update.
     inFlightRef.current = true;
-    setError(null);
+    setFormError(null);
     setSubmitting(true);
 
     const qualified = isQualified(homeowner, timeline);
     setWasQualified(qualified);
 
-    // Disqualification reason — captured for lead pipeline tagging.
     let disqualReason: string | null = null;
     if (!qualified) {
       if (homeowner !== "yes") {
@@ -136,8 +240,9 @@ export function FormCard({
     }
 
     try {
-      // EVERY submission goes to the lead API. Per AGENTS Builds Lane
-      // HARD RULE #1 — disqualified leads are TAGGED, never silently dropped.
+      // EVERY submission goes to the lead API. Disqualified leads tagged,
+      // never silently dropped (AGENTS Builds Lane HARD RULE #1 +
+      // 2026-05-14 Peter mandate + QC Capital 2026-05-21 rework lesson).
       await submit({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -149,12 +254,28 @@ export function FormCard({
         qualified,
         disqualification_reason: disqualReason,
       });
+
+      // Manual dataLayer push for GTM — required by AGENTS Builds HARD
+      // RULE #4 per director ruling 2026-05-29. The optimizer auto-detect
+      // is the primary tracking path; this is the belt-and-suspenders
+      // GTM signal. Do NOT add MegaTag.trackEvent (auto-detect handles it).
+      if (typeof window !== "undefined") {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "form_submission",
+          form_id: `${idSuffix}_lead_form`,
+          qualified,
+          disqualification_reason: disqualReason,
+        });
+      }
     } catch (err) {
       console.error("Form submission failed:", err);
-      setError("Something went wrong on our end — we also got your info.");
+      setFormError("Something went wrong on our end — we also got your info.");
     } finally {
       setSubmitted(true);
       setSubmitting(false);
+      // We intentionally leave inFlightRef.current = true post-submit so
+      // any late click attempts after the success view renders also bail.
     }
   }
 
@@ -163,12 +284,16 @@ export function FormCard({
       ? "bg-white/98 backdrop-blur rounded-2xl shadow-2xl shadow-[var(--color-accent)]/30 border border-[var(--color-primary)]/15 p-6 sm:p-8"
       : "bg-white rounded-2xl shadow-xl border border-[var(--color-line)] p-6 sm:p-8";
 
-  const inputClass =
-    "w-full rounded-lg border-2 border-[var(--color-line)] bg-white px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition";
+  const inputBase =
+    "w-full rounded-lg border-2 bg-white px-4 py-3 text-base text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)] focus:outline-none focus:ring-2 transition";
+  const inputClass = (hasError: boolean) =>
+    `${inputBase} ${
+      hasError
+        ? "border-[var(--color-danger)] focus:ring-[var(--color-danger)] focus:border-[var(--color-danger)]"
+        : "border-[var(--color-line)] focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+    }`;
 
   if (submitted) {
-    // Branch on qualified/disqualified ONLY in the UI — both code paths
-    // have already POSTed to the lead API above.
     if (wasQualified) {
       return (
         <div className={wrapperClass}>
@@ -202,16 +327,14 @@ export function FormCard({
               </a>
               .
             </p>
-            {error && (
-              <p className="text-sm text-[var(--color-danger)]">{error}</p>
+            {formError && (
+              <p className="text-sm text-[var(--color-danger)]">{formError}</p>
             )}
           </div>
         </div>
       );
     }
 
-    // Disqualified — show a respectful "not a fit right now" screen with
-    // a phone-call escape hatch. The lead is still in the system.
     return (
       <div className={wrapperClass}>
         <div className="text-center py-6 space-y-4">
@@ -235,7 +358,7 @@ export function FormCard({
           </h3>
           <p className="text-[var(--color-ink-muted)] max-w-sm mx-auto">
             Based on your answers, our free in-home estimate may not be the
-            best fit right now. If your situation changes — or if you'd
+            best fit right now. If your situation changes — or if you&apos;d
             like to talk through options — give us a call.
           </p>
           <a
@@ -256,13 +379,37 @@ export function FormCard({
             </svg>
             Call {BRAND.phoneDisplay}
           </a>
-          {error && (
-            <p className="text-sm text-[var(--color-danger)]">{error}</p>
+          {formError && (
+            <p className="text-sm text-[var(--color-danger)]">{formError}</p>
           )}
         </div>
       </div>
     );
   }
+
+  // Helper for the inline error message under each field.
+  const renderError = (key: FieldKey) => {
+    const msg = errors[key];
+    if (!msg) return null;
+    return (
+      <p
+        id={`${key}-${idSuffix}-error`}
+        role="alert"
+        aria-live="polite"
+        className="lp-input-error mt-1.5 text-xs font-semibold text-[var(--color-danger)]"
+      >
+        {msg}
+      </p>
+    );
+  };
+
+  const ariaProps = (key: FieldKey) =>
+    errors[key]
+      ? {
+          "aria-invalid": true as const,
+          "aria-describedby": `${key}-${idSuffix}-error`,
+        }
+      : {};
 
   return (
     <div className={wrapperClass} id={`form-${idSuffix}`}>
@@ -289,16 +436,23 @@ export function FormCard({
               First Name *
             </label>
             <input
+              ref={setFieldRef("firstName")}
               id={`firstName-${idSuffix}`}
               name="firstName"
               type="text"
               autoComplete="given-name"
               required
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) => {
+                setFirstName(e.target.value);
+                clearErrorIfFixed("firstName", e.target.value);
+              }}
+              onBlur={(e) => handleBlur("firstName", e.target.value)}
               placeholder="Jane"
-              className={inputClass}
+              className={inputClass(!!errors.firstName)}
+              {...ariaProps("firstName")}
             />
+            {renderError("firstName")}
           </div>
           <div>
             <label
@@ -308,16 +462,23 @@ export function FormCard({
               Last Name *
             </label>
             <input
+              ref={setFieldRef("lastName")}
               id={`lastName-${idSuffix}`}
               name="lastName"
               type="text"
               autoComplete="family-name"
               required
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) => {
+                setLastName(e.target.value);
+                clearErrorIfFixed("lastName", e.target.value);
+              }}
+              onBlur={(e) => handleBlur("lastName", e.target.value)}
               placeholder="Doe"
-              className={inputClass}
+              className={inputClass(!!errors.lastName)}
+              {...ariaProps("lastName")}
             />
+            {renderError("lastName")}
           </div>
         </div>
 
@@ -329,16 +490,24 @@ export function FormCard({
             Email Address *
           </label>
           <input
+            ref={setFieldRef("email")}
             id={`email-${idSuffix}`}
             name="email"
             type="email"
             autoComplete="email"
             required
+            pattern={EMAIL_PATTERN}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              clearErrorIfFixed("email", e.target.value);
+            }}
+            onBlur={(e) => handleBlur("email", e.target.value)}
             placeholder="jane.doe@example.com"
-            className={inputClass}
+            className={inputClass(!!errors.email)}
+            {...ariaProps("email")}
           />
+          {renderError("email")}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -350,17 +519,25 @@ export function FormCard({
               Phone Number *
             </label>
             <input
+              ref={setFieldRef("phone")}
               id={`phone-${idSuffix}`}
               name="phone"
               type="tel"
               autoComplete="tel"
               required
-              inputMode="tel"
+              inputMode="numeric"
               value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              onChange={(e) => {
+                const formatted = formatPhone(e.target.value);
+                setPhone(formatted);
+                clearErrorIfFixed("phone", formatted);
+              }}
+              onBlur={(e) => handleBlur("phone", e.target.value)}
               placeholder="(503) 555-0100"
-              className={inputClass}
+              className={inputClass(!!errors.phone)}
+              {...ariaProps("phone")}
             />
+            {renderError("phone")}
           </div>
           <div>
             <label
@@ -370,6 +547,7 @@ export function FormCard({
               ZIP Code *
             </label>
             <input
+              ref={setFieldRef("zip")}
               id={`zip-${idSuffix}`}
               name="zip"
               type="text"
@@ -377,10 +555,17 @@ export function FormCard({
               required
               inputMode="numeric"
               value={zip}
-              onChange={(e) => setZip(formatZip(e.target.value))}
+              onChange={(e) => {
+                const formatted = formatZip(e.target.value);
+                setZip(formatted);
+                clearErrorIfFixed("zip", formatted);
+              }}
+              onBlur={(e) => handleBlur("zip", e.target.value)}
               placeholder="97201"
-              className={inputClass}
+              className={inputClass(!!errors.zip)}
+              {...ariaProps("zip")}
             />
+            {renderError("zip")}
           </div>
         </div>
 
@@ -393,12 +578,19 @@ export function FormCard({
           </label>
           <div className="relative">
             <select
+              ref={setFieldRef("homeowner")}
               id={`homeowner-${idSuffix}`}
               name="homeowner"
               required
               value={homeowner}
-              onChange={(e) => setHomeowner(e.target.value as HomeownerValue)}
-              className={`${inputClass} appearance-none pr-10`}
+              onChange={(e) => {
+                const v = e.target.value as HomeownerValue;
+                setHomeowner(v);
+                clearErrorIfFixed("homeowner", v);
+              }}
+              onBlur={(e) => handleBlur("homeowner", e.target.value)}
+              className={`${inputClass(!!errors.homeowner)} appearance-none pr-10`}
+              {...ariaProps("homeowner")}
             >
               <option value="" disabled>
                 Select an option
@@ -413,6 +605,7 @@ export function FormCard({
               <ChevronDown />
             </div>
           </div>
+          {renderError("homeowner")}
         </div>
 
         <div>
@@ -424,12 +617,19 @@ export function FormCard({
           </label>
           <div className="relative">
             <select
+              ref={setFieldRef("timeline")}
               id={`timeline-${idSuffix}`}
               name="timeline"
               required
               value={timeline}
-              onChange={(e) => setTimeline(e.target.value as TimelineValue)}
-              className={`${inputClass} appearance-none pr-10`}
+              onChange={(e) => {
+                const v = e.target.value as TimelineValue;
+                setTimeline(v);
+                clearErrorIfFixed("timeline", v);
+              }}
+              onBlur={(e) => handleBlur("timeline", e.target.value)}
+              className={`${inputClass(!!errors.timeline)} appearance-none pr-10`}
+              {...ariaProps("timeline")}
             >
               <option value="" disabled>
                 Select a timeline
@@ -444,34 +644,26 @@ export function FormCard({
               <ChevronDown />
             </div>
           </div>
+          {renderError("timeline")}
         </div>
 
-        {error && (
+        {formError && (
           <p
             className="text-sm text-[var(--color-danger)] bg-red-50 border border-red-200 rounded-lg px-3 py-2"
             role="alert"
           >
-            {error}
+            {formError}
           </p>
         )}
 
-        {/* type="button" — validate first, then requestSubmit() (SHLY pattern). */}
+        {/* type="button" + disabled + sync inFlightRef pattern.
+            (SHLY May 8 + QA attempt 1 hardening.) */}
         <button
           type="button"
           disabled={submitting || submitted}
           onClick={(e) => {
-            // Synchronous guard against rapid clicks (refs update faster
-            // than React state). The handleSubmit guard is the truth, but
-            // this prevents requestSubmit() from even being called.
+            // Synchronous guard — refs update faster than React state.
             if (inFlightRef.current || submitted) return;
-            if (!canSubmit) {
-              // Let the native browser show its required-field hints.
-              const form = (e.currentTarget as HTMLButtonElement).closest(
-                "form",
-              );
-              form?.reportValidity();
-              return;
-            }
             const form = (e.currentTarget as HTMLButtonElement).closest(
               "form",
             ) as HTMLFormElement | null;

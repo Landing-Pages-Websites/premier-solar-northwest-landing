@@ -54,8 +54,19 @@ export function OfferSection() {
                 key={item.t}
                 className="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/15 p-5"
               >
-                <div className="w-8 h-8 rounded-full bg-[var(--color-amber)] text-[var(--color-accent)] flex items-center justify-center font-extrabold text-sm">
-                  ✓
+                <div className="w-8 h-8 rounded-full bg-[var(--color-amber)] text-[var(--color-accent)] flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </div>
                 <h3 className="mt-3 text-base font-bold text-white">
                   {item.t}

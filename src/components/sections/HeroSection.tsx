@@ -128,6 +128,40 @@ export function HeroSection() {
               align="start"
               className="!mt-7"
             />
+
+            {/* Standalone hero phone CTA — separate from DualCTA, large
+                tap target visible on desktop AND mobile. Director ruling
+                2026-05-29: phone-enabled HVAC LPs need the phone as a
+                thumb-target conversion floor on the hero, not just inside
+                the secondary DualCTA link. */}
+            <a
+              href={BRAND.phoneHref}
+              aria-label={`Call ${BRAND.phoneDisplay}`}
+              className="mt-4 inline-flex items-center gap-3 rounded-xl bg-white text-[var(--color-accent)] hover:bg-[var(--color-amber-50)] px-5 py-3.5 font-extrabold text-base sm:text-lg shadow-xl shadow-black/20 transition w-full sm:w-auto justify-center sm:justify-start"
+            >
+              <span className="w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shrink-0">
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </span>
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[10px] uppercase tracking-wider text-[var(--color-ink-muted)] font-semibold">
+                  Talk to an HVAC expert
+                </span>
+                <span className="text-base sm:text-lg font-extrabold">
+                  {BRAND.phoneDisplay}
+                </span>
+              </span>
+            </a>
           </Reveal>
 
           <Reveal delay={120} className="lg:sticky lg:top-24">

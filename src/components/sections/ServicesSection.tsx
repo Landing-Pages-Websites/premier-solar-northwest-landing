@@ -30,8 +30,9 @@ export function ServicesSection() {
         <div className="space-y-12 sm:space-y-16">
           {SERVICES.map((svc, i) => (
             <Reveal key={svc.id} delay={i * 80}>
-              <article
+              <section
                 id={svc.id}
+                aria-labelledby={`${svc.id}-title`}
                 className={`grid lg:grid-cols-2 gap-8 lg:gap-12 items-center ${
                   i % 2 === 1 ? "lg:[&>div:first-child]:order-2" : ""
                 }`}
@@ -49,7 +50,10 @@ export function ServicesSection() {
                   <p className="eyebrow">
                     {String(i + 1).padStart(2, "0")} / {SERVICES.length}
                   </p>
-                  <h3 className="mt-2 text-2xl sm:text-3xl font-extrabold text-[var(--color-accent)] leading-tight">
+                  <h3
+                    id={`${svc.id}-title`}
+                    className="mt-2 text-2xl sm:text-3xl font-extrabold text-[var(--color-accent)] leading-tight"
+                  >
                     {svc.title}
                   </h3>
                   <p className="mt-4 text-base sm:text-lg text-[var(--color-ink)]/85 leading-relaxed">
@@ -57,7 +61,7 @@ export function ServicesSection() {
                   </p>
                   <DualCTA align="start" />
                 </div>
-              </article>
+              </section>
             </Reveal>
           ))}
         </div>

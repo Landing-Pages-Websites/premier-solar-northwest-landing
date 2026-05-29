@@ -47,9 +47,14 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Phone CTA: visible mobile + desktop. Mobile shows icon-only
+              tap target (saves header width); desktop shows the full
+              number for click-to-call clarity. Director ruling
+              2026-05-29 — phone leads enabled, must be a thumb-target. */}
           <a
             href={BRAND.phoneHref}
-            className="hidden md:inline-flex items-center gap-2 border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg px-4 py-2 font-bold text-sm transition"
+            aria-label={`Call ${BRAND.phoneDisplay}`}
+            className="inline-flex items-center gap-2 border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white rounded-lg px-3 py-2 sm:px-4 font-bold text-sm transition"
           >
             <svg
               className="w-4 h-4"
@@ -63,7 +68,8 @@ export function Header() {
             >
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
             </svg>
-            {BRAND.phoneDisplay}
+            <span className="hidden sm:inline">{BRAND.phoneDisplay}</span>
+            <span className="sm:hidden">Call</span>
           </a>
           <a
             href="#contact"

@@ -92,7 +92,7 @@ export const SERVICES = [
     title: "Emergency HVAC Service",
     blurb:
       "No heat in January? No AC during a Portland heat wave? Call us first. Our team prioritizes emergency service calls so you're not stuck in a freezing or sweltering house waiting on a callback.",
-    image: "/images/hvac-install.webp",
+    image: "/images/emergency-hvac.webp",
   },
 ] as const;
 

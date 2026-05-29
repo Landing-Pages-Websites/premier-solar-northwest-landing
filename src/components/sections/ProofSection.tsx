@@ -62,8 +62,16 @@ export function ProofSection() {
               </p>
             </div>
             <div>
-              <p className="text-4xl sm:text-5xl font-extrabold text-[var(--color-amber)]">
-                4.8★
+              <p className="text-4xl sm:text-5xl font-extrabold text-[var(--color-amber)] flex items-center justify-center gap-1">
+                4.8
+                <svg
+                  className="w-7 h-7 sm:w-8 sm:h-8"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+                </svg>
               </p>
               <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-white/85">
                 Google review average
