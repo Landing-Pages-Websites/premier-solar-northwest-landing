@@ -166,6 +166,15 @@ export function HeroSection() {
 
           <Reveal delay={120} className="lg:sticky lg:top-24">
             <FormCard variant="hero" idSuffix="hero" />
+            <p className="mt-3 text-center text-xs text-white/80">
+              No heat or no AC right now?{" "}
+              <a
+                href={BRAND.phoneHref}
+                className="font-bold hover:underline"
+              >
+                Call {BRAND.phoneDisplay} for priority service
+              </a>
+            </p>
           </Reveal>
         </div>
       </div>

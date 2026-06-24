@@ -83,6 +83,7 @@ type FieldKey =
   | "email"
   | "phone"
   | "zip"
+  | "address"
   | "homeowner"
   | "timeline";
 
@@ -109,6 +110,10 @@ function validateField(key: FieldKey, value: string): string | null {
     case "zip":
       if (value.length === 0) return "Please enter your ZIP code.";
       return value.length === 5 ? null : "ZIP must be 5 digits.";
+    case "address":
+      return value.trim().length >= 5
+        ? null
+        : "Please enter your street address.";
     case "homeowner":
       return value.length > 0 ? null : "Please select an option.";
     case "timeline":
@@ -129,6 +134,7 @@ export function FormCard({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [zip, setZip] = useState("");
+  const [address, setAddress] = useState("");
   const [homeowner, setHomeowner] = useState<HomeownerValue | "">("");
   const [timeline, setTimeline] = useState<TimelineValue | "">("");
 
@@ -168,6 +174,7 @@ export function FormCard({
     EMAIL_RE.test(email.trim()) &&
     phoneValid &&
     zipValid &&
+    address.trim().length >= 5 &&
     homeowner.length > 0 &&
     timeline.length > 0;
 
@@ -204,6 +211,7 @@ export function FormCard({
         email: validateField("email", email),
         phone: validateField("phone", phone),
         zip: validateField("zip", zip),
+        address: validateField("address", address),
         homeowner: validateField("homeowner", homeowner),
         timeline: validateField("timeline", timeline),
       };
@@ -249,6 +257,7 @@ export function FormCard({
         email: email.trim(),
         phone: phoneDigits,
         zip,
+        address: address.trim(),
         homeowner,
         timeline,
         qualified,
@@ -571,6 +580,33 @@ export function FormCard({
 
         <div>
           <label
+            htmlFor={`address-${idSuffix}`}
+            className="block text-xs font-bold uppercase tracking-wider text-[var(--color-accent)] mb-1.5"
+          >
+            Street Address *
+          </label>
+          <input
+            ref={setFieldRef("address")}
+            id={`address-${idSuffix}`}
+            name="address"
+            type="text"
+            autoComplete="street-address"
+            required
+            value={address}
+            onChange={(e) => {
+              setAddress(e.target.value);
+              clearErrorIfFixed("address", e.target.value);
+            }}
+            onBlur={(e) => handleBlur("address", e.target.value)}
+            placeholder="123 SE Main St, Portland, OR 97214"
+            className={inputClass(!!errors.address)}
+            {...ariaProps("address")}
+          />
+          {renderError("address")}
+        </div>
+
+        <div>
+          <label
             htmlFor={`homeowner-${idSuffix}`}
             className="block text-xs font-bold uppercase tracking-wider text-[var(--color-accent)] mb-1.5"
           >
@@ -718,6 +754,10 @@ export function FormCard({
         <p className="text-xs text-[var(--color-ink-muted)] text-center">
           By submitting, you agree to be contacted by Premier Solar Northwest
           about your HVAC quote. Standard message + data rates may apply.
+        </p>
+
+        <p className="text-[11px] font-semibold text-[var(--color-ink-muted)] text-center">
+          NATE-certified · Licensed HVAC contractor · 1,000+ installs since 2011
         </p>
       </form>
     </div>

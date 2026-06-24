@@ -23,7 +23,7 @@ export const BRAND = {
   phoneDisplay: "(971) 357-9233",
   phoneHref: "tel:+19713579233",
   email: "bcullivan@premiersolarnw.com",
-  primaryCtaLabel: "Get My Free Quote",
+  primaryCtaLabel: "Get My Free In-Home Estimate",
   primaryCtaShort: "Get Free Quote",
   // Featured offer
   offerHeadline: "$500 OFF Furnace + AC Combo Replacement",
