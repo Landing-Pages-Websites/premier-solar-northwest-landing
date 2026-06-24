@@ -64,21 +64,21 @@ export const SERVICES = [
     title: "Heat Pump Installation",
     blurb:
       "All-electric heating + cooling in one efficient system. Perfect for Portland's wet winters and warm summers, with Energy Trust of Oregon rebates available on qualifying systems.",
-    image: "/images/heat-pump.webp",
+    image: "/images/heatpump-installation.webp",
   },
   {
     id: "furnace-replacement",
     title: "Furnace Replacement",
     blurb:
       "High-efficiency gas furnace upgrades with right-sized BTU loads and clean install work. We pull the permits, haul the old unit, and stand behind every install with our limited workmanship + labor warranty.",
-    image: "/images/furnace.webp",
+    image: "/images/furnace-replacement.webp",
   },
   {
     id: "ac-installation-repair",
     title: "AC Installation & Repair",
     blurb:
       "Central AC installation and same-week repair for residential homes across the Portland metro. From a quiet new central system to a fast capacitor swap, NATE-certified technicians handle the diagnosis and the fix.",
-    image: "/images/hvac-install.webp",
+    image: "/images/ac-installation.webp",
   },
   {
     id: "hvac-repair",
@@ -92,7 +92,7 @@ export const SERVICES = [
     title: "Emergency HVAC Service",
     blurb:
       "No heat in January? No AC during a Portland heat wave? Call us first. Our team prioritizes emergency service calls so you're not stuck in a freezing or sweltering house waiting on a callback.",
-    image: "/images/emergency-hvac.webp",
+    image: "/images/emergency-service.webp",
   },
 ] as const;
 
