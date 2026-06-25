@@ -12,7 +12,7 @@ export const BRAND = {
   name: "Premier Solar NW",
   fullName: "Premier Solar Northwest",
   hvacName: "Premier HVAC Pro",
-  tagline: "Portland's Trusted HVAC Experts",
+  tagline: "Portland's Trusted HVAC Contractors for Heating & Cooling",
   taglineLong:
     "HVAC installation, replacement, and repair for Portland metro homeowners.",
   since: 2011,
