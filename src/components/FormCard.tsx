@@ -251,7 +251,7 @@ export function FormCard({
       // EVERY submission goes to the lead API. Disqualified leads tagged,
       // never silently dropped (AGENTS Builds Lane HARD RULE #1 +
       // 2026-05-14 Peter mandate + QC Capital 2026-05-21 rework lesson).
-      await submit({
+      const res = await submit({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
@@ -263,6 +263,10 @@ export function FormCard({
         qualified,
         disqualification_reason: disqualReason,
       });
+
+      if (res?.ok !== true) {
+        throw new Error("Submission was not confirmed");
+      }
 
       // Manual dataLayer push for GTM — required by AGENTS Builds HARD
       // RULE #4 per director ruling 2026-05-29. The optimizer auto-detect
@@ -277,14 +281,17 @@ export function FormCard({
           disqualification_reason: disqualReason,
         });
       }
-    } catch (err) {
-      console.error("Form submission failed:", err);
-      setFormError("Something went wrong on our end — we also got your info.");
-    } finally {
+
       setSubmitted(true);
       setSubmitting(false);
-      // We intentionally leave inFlightRef.current = true post-submit so
-      // any late click attempts after the success view renders also bail.
+      // inFlightRef stays true after a confirmed success so late clicks bail.
+    } catch (err) {
+      console.error("Form submission failed:", err);
+      setFormError(
+        "We could not send your request. Please check your connection and try again, or email us at bcullivan@premiersolarnw.com.",
+      );
+      setSubmitting(false);
+      inFlightRef.current = false; // clear the latch so a retry is possible
     }
   }
 
@@ -336,9 +343,6 @@ export function FormCard({
               </a>
               .
             </p>
-            {formError && (
-              <p className="text-sm text-[var(--color-danger)]">{formError}</p>
-            )}
           </div>
         </div>
       );
@@ -388,9 +392,6 @@ export function FormCard({
             </svg>
             Call {BRAND.phoneDisplay}
           </a>
-          {formError && (
-            <p className="text-sm text-[var(--color-danger)]">{formError}</p>
-          )}
         </div>
       </div>
     );
@@ -687,6 +688,7 @@ export function FormCard({
           <p
             className="text-sm text-[var(--color-danger)] bg-red-50 border border-red-200 rounded-lg px-3 py-2"
             role="alert"
+            aria-live="polite"
           >
             {formError}
           </p>

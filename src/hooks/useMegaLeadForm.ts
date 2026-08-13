@@ -233,7 +233,11 @@ export function useMegaLeadForm(
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      return (await response.json()) as SubmissionResponse;
+      const data = (await response.json()) as SubmissionResponse;
+      if (data?.ok !== true) {
+        throw new Error("Submission rejected by the lead API");
+      }
+      return data;
     },
     [options.customerId, options.siteId, options.sourceProvider],
   );
