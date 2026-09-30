@@ -32,8 +32,8 @@ type Props = {
  * - R5: rapid-click guard hardened — inFlightRef set BEFORE any state
  *       update, button gets disabled={submitting||submitted}
  * - R4: explicit window.dataLayer.push({event:'form_submission',...})
- *       after successful submit() — keeping MegaTag optimizer auto-detect
- *       as the primary tracking path (no MegaTag.trackEvent call)
+ *       after successful submit(), preceded by a canonical
+ *       MegaTag.trackEvent('form_submit') (native submit is never dispatched)
  * - HARD RULE #8 / Peter mandate 2026-05-19: inline per-field validation
  *   errors — every required field has its own role=alert sibling, blur
  *   triggers + live-clear, empty-submit shows all + focuses first invalid
@@ -59,6 +59,29 @@ function formatPhone(value: string): string {
 
 function formatZip(value: string): string {
   return value.replace(/\D/g, "").slice(0, 5);
+}
+
+// Inputs where Enter should submit. Selects, textareas and buttons keep
+// their native Enter behavior.
+const ENTER_SUBMIT_INPUT_TYPES = new Set(["text", "email", "tel"]);
+// keyCode Safari reports for the Enter that commits an IME composition.
+const IME_PROCESS_KEY_CODE = 229;
+
+type MegaTagWindow = Window & {
+  MegaTag?: {
+    trackEvent?: (event: string, data: Record<string, unknown>) => void;
+  };
+};
+
+// Canonical Mega form_submit, fired only after a confirmed lead. Replaces
+// the optimizer's native-submit auto-detection (no native submit event is
+// dispatched any more). A tracker failure must never fail a persisted lead.
+function trackMegaFormSubmit(data: Record<string, unknown>): void {
+  try {
+    (window as MegaTagWindow).MegaTag?.trackEvent?.("form_submit", data);
+  } catch (trackErr) {
+    console.warn("MegaTag.trackEvent failed:", trackErr);
+  }
 }
 
 const ChevronDown = () => (
@@ -197,9 +220,20 @@ export function FormCard({
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Enter in a text-like input submits directly. preventDefault stops the
+  // browser's implicit submission, so no native submit event ever fires.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLFormElement>) {
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    if (e.nativeEvent.keyCode === IME_PROCESS_KEY_CODE) return;
+    if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    if (!ENTER_SUBMIT_INPUT_TYPES.has(target.type)) return;
     e.preventDefault();
+    void handleSubmit();
+  }
 
+  async function handleSubmit() {
     // Synchronous double-click guard — must be the very first line.
     if (inFlightRef.current || submitted) return;
 
@@ -251,7 +285,7 @@ export function FormCard({
       // EVERY submission goes to the lead API. Disqualified leads tagged,
       // never silently dropped (AGENTS Builds Lane HARD RULE #1 +
       // 2026-05-14 Peter mandate + QC Capital 2026-05-21 rework lesson).
-      const res = await submit({
+      const leadData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
@@ -262,16 +296,18 @@ export function FormCard({
         timeline,
         qualified,
         disqualification_reason: disqualReason,
-      });
+      };
+      const res = await submit(leadData);
 
       if (res?.ok !== true) {
         throw new Error("Submission was not confirmed");
       }
 
-      // Manual dataLayer push for GTM — required by AGENTS Builds HARD
-      // RULE #4 per director ruling 2026-05-29. The optimizer auto-detect
-      // is the primary tracking path; this is the belt-and-suspenders
-      // GTM signal. Do NOT add MegaTag.trackEvent (auto-detect handles it).
+      trackMegaFormSubmit({ element: `form-${idSuffix}`, ...leadData });
+
+      // Manual dataLayer push for GTM, required by AGENTS Builds HARD
+      // RULE #4 per director ruling 2026-05-29. Fires only after a
+      // confirmed lead, after the canonical MegaTag form_submit above.
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
@@ -431,8 +467,13 @@ export function FormCard({
           {subheading}
         </p>
       </div>
+      {/* Never dispatch a native submit (no submit-type button, no form
+          redispatch):
+          GTM gtm.formSubmit and optimizer auto-detect listen at document
+          capture and would fire before the lead API result. */}
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => e.preventDefault()}
+        onKeyDown={handleKeyDown}
         className="space-y-4"
         noValidate
         aria-label="HVAC quote request form"
@@ -699,14 +740,7 @@ export function FormCard({
         <button
           type="button"
           disabled={submitting || submitted}
-          onClick={(e) => {
-            // Synchronous guard — refs update faster than React state.
-            if (inFlightRef.current || submitted) return;
-            const form = (e.currentTarget as HTMLButtonElement).closest(
-              "form",
-            ) as HTMLFormElement | null;
-            form?.requestSubmit();
-          }}
+          onClick={() => void handleSubmit()}
           className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[var(--color-ink-muted)] disabled:cursor-not-allowed text-white px-6 py-3.5 rounded-lg font-bold text-base transition shadow-sm flex items-center justify-center gap-2"
         >
           {submitting ? (
