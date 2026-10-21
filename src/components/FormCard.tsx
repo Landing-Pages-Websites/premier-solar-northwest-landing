@@ -32,8 +32,11 @@ type Props = {
  * - R5: rapid-click guard hardened — inFlightRef set BEFORE any state
  *       update, button gets disabled={submitting||submitted}
  * - R4: explicit window.dataLayer.push({event:'form_submission',...})
- *       after successful submit() — keeping MegaTag optimizer auto-detect
- *       as the primary tracking path (no MegaTag.trackEvent call)
+ *       after successful submit()
+ * - Oct 21 rework (director scope 2026-09-30): no native submit redispatch.
+ *   The button and text/email/tel Enter call submitLead() directly; the
+ *   optimizer gets one explicit, non-PII MegaTag.trackEvent only after the
+ *   lead API confirms ok === true.
  * - HARD RULE #8 / Peter mandate 2026-05-19: inline per-field validation
  *   errors — every required field has its own role=alert sibling, blur
  *   triggers + live-clear, empty-submit shows all + focuses first invalid
@@ -59,6 +62,48 @@ function formatPhone(value: string): string {
 
 function formatZip(value: string): string {
   return value.replace(/\D/g, "").slice(0, 5);
+}
+
+// Emitted once per confirmed submission; non-PII metadata only.
+const MEGA_SUBMIT_EVENT = "form_submit";
+// keyCode reported by browsers while an IME composition is in progress.
+const IME_COMPOSING_KEYCODE = 229;
+const ENTER_SUBMIT_INPUT_TYPES = new Set(["text", "email", "tel"]);
+
+type MegaTagApi = {
+  trackEvent?: (name: string, data: Record<string, unknown>) => void;
+};
+
+function trackConfirmedSubmit(
+  elementId: string,
+  qualified: boolean,
+  disqualReason: string | null,
+): void {
+  try {
+    const megaTag = (window as Window & { MegaTag?: MegaTagApi }).MegaTag;
+    megaTag?.trackEvent?.(MEGA_SUBMIT_EVENT, {
+      elementId,
+      elementType: "form",
+      formData: { qualified, disqualification_reason: disqualReason },
+    });
+  } catch {
+    // Optimizer is optional; never block the confirmed-success path.
+  }
+}
+
+// Plain Enter in a text/email/tel input submits via the validated handler.
+// Selects, buttons, modified keys and IME composition keep native behavior.
+function isEnterSubmitKey(e: React.KeyboardEvent<HTMLFormElement>): boolean {
+  if (e.key !== "Enter") return false;
+  if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (e.nativeEvent.isComposing || e.keyCode === IME_COMPOSING_KEYCODE) {
+    return false;
+  }
+  const target = e.target;
+  return (
+    target instanceof HTMLInputElement &&
+    ENTER_SUBMIT_INPUT_TYPES.has(target.type)
+  );
 }
 
 const ChevronDown = () => (
@@ -197,9 +242,7 @@ export function FormCard({
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
+  async function submitLead(): Promise<void> {
     // Synchronous double-click guard — must be the very first line.
     if (inFlightRef.current || submitted) return;
 
@@ -268,10 +311,10 @@ export function FormCard({
         throw new Error("Submission was not confirmed");
       }
 
+      trackConfirmedSubmit(`${idSuffix}_lead_form`, qualified, disqualReason);
+
       // Manual dataLayer push for GTM — required by AGENTS Builds HARD
-      // RULE #4 per director ruling 2026-05-29. The optimizer auto-detect
-      // is the primary tracking path; this is the belt-and-suspenders
-      // GTM signal. Do NOT add MegaTag.trackEvent (auto-detect handles it).
+      // RULE #4 per director ruling 2026-05-29.
       if (typeof window !== "undefined") {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
@@ -432,7 +475,15 @@ export function FormCard({
         </p>
       </div>
       <form
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          // Defensive: any native submit is swallowed, never re-dispatched.
+          e.preventDefault();
+        }}
+        onKeyDown={(e) => {
+          if (!isEnterSubmitKey(e)) return;
+          e.preventDefault();
+          void submitLead();
+        }}
         className="space-y-4"
         noValidate
         aria-label="HVAC quote request form"
@@ -699,13 +750,8 @@ export function FormCard({
         <button
           type="button"
           disabled={submitting || submitted}
-          onClick={(e) => {
-            // Synchronous guard — refs update faster than React state.
-            if (inFlightRef.current || submitted) return;
-            const form = (e.currentTarget as HTMLButtonElement).closest(
-              "form",
-            ) as HTMLFormElement | null;
-            form?.requestSubmit();
+          onClick={() => {
+            void submitLead();
           }}
           className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:bg-[var(--color-ink-muted)] disabled:cursor-not-allowed text-white px-6 py-3.5 rounded-lg font-bold text-base transition shadow-sm flex items-center justify-center gap-2"
         >
@@ -752,11 +798,6 @@ export function FormCard({
             </>
           )}
         </button>
-
-        <p className="text-xs text-[var(--color-ink-muted)] text-center">
-          By submitting, you agree to be contacted by Premier Solar Northwest
-          about your HVAC quote. Standard message + data rates may apply.
-        </p>
 
         <p className="text-[11px] font-semibold text-[var(--color-ink-muted)] text-center">
           NATE-certified · Licensed HVAC contractor · 1,000+ installs since 2011
